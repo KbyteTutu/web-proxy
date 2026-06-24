@@ -2,7 +2,6 @@ import crypto from "node:crypto";
 import { config } from "./config.js";
 
 export const COOKIE_NAME = "wp_session";
-export const CSRF_COOKIE = "wp_csrf";
 
 function sign(value) {
   const h = crypto
@@ -44,18 +43,13 @@ export function verifyToken(token) {
   return verify(token) !== null;
 }
 
+const CSRF_TTL_MS = 5 * 60 * 1000;
+
 export function csrfToken() {
-  return crypto.randomBytes(32).toString("hex");
+  const raw = crypto.randomBytes(32).toString("hex");
+  return sign(`${Date.now() + CSRF_TTL_MS}.${raw}`);
 }
 
-export function verifyCsrf(cookieValue, formValue) {
-  if (!cookieValue || !formValue) return false;
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(cookieValue),
-      Buffer.from(formValue)
-    );
-  } catch {
-    return false;
-  }
+export function verifyCsrf(token) {
+  return verify(token) !== null;
 }

@@ -13,7 +13,6 @@ import { RateLimiterMemory } from "rate-limiter-flexible";
 import { config } from "./config.js";
 import {
   COOKIE_NAME,
-  CSRF_COOKIE,
   isAuthed,
   checkPassword,
   sessionCookieValue,
@@ -93,12 +92,6 @@ const loginLimiter = new RateLimiterMemory({
 
 function renderLogin(res, error) {
   const token = csrfToken();
-  res.cookie(CSRF_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 5 * 60 * 1000,
-  });
   res.type("html").send(loginPage(error, token));
 }
 
@@ -123,12 +116,11 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", express.urlencoded({ extended: false, limit: "1kb" }), rateLimitLogin, (req, res) => {
-  if (!verifyCsrf(req.cookies?.[CSRF_COOKIE], req.body._csrf)) {
+  if (!verifyCsrf(req.body._csrf)) {
     res.status(403);
     return renderLogin(res, "请求无效，请刷新重试");
   }
   if (checkPassword(req.body.password)) {
-    res.clearCookie(CSRF_COOKIE);
     res.cookie(COOKIE_NAME, sessionCookieValue(), {
       httpOnly: true,
       sameSite: "lax",
