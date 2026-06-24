@@ -1,0 +1,18 @@
+services:
+  web-proxy:
+    build: .
+    ports:
+      - "${PROXY_PORT:-8080}:8080"
+    environment:
+      - PROXY_PASSWORD
+      - PROXY_PORT=8080
+      - PROXY_HOST=0.0.0.0
+      - UPSTREAM_SOCKS5
+      - PROXY_BLOCK_LOCAL
+      - SESSION_SECRET
+      - SESSION_TTL_MS
+      - TLS_CERT_PATH
+      - TLS_KEY_PATH
+    volumes:
+      - "${TLS_CERTS_DIR:-./certs}:/certs:ro"
+    restart: unless-stopped
