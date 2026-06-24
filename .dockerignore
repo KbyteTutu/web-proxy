@@ -1,0 +1,9 @@
+node_modules
+.git
+.sisyphus
+.playwright-mcp
+*.md
+*.png
+Dockerfile
+docker-compose.yml
+.dockerignore
