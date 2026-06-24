@@ -96,6 +96,7 @@ function renderLogin(res, error) {
   res.cookie(CSRF_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
+    path: "/",
     maxAge: 5 * 60 * 1000,
   });
   res.type("html").send(loginPage(error, token));
