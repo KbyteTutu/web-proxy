@@ -91,13 +91,24 @@ const loginLimiter = new RateLimiterMemory({
   duration: 60,
 });
 
+function renderLogin(res, error) {
+  const token = csrfToken();
+  res.cookie(CSRF_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 5 * 60 * 1000,
+  });
+  res.type("html").send(loginPage(error, token));
+}
+
 async function rateLimitLogin(req, res, next) {
   try {
     const ip = req.ip || req.socket.remoteAddress || "unknown";
     await loginLimiter.consume(ip);
     next();
   } catch {
-    res.status(429).type("html").send(loginPage("请求过于频繁，请稍后再试"));
+    res.status(429);
+    renderLogin(res, "请求过于频繁，请稍后再试");
   }
 }
 
@@ -107,18 +118,13 @@ app.get("/proxy-token", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const token = csrfToken();
-  res.cookie(CSRF_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 5 * 60 * 1000,
-  });
-  res.type("html").send(loginPage("", token));
+  renderLogin(res, "");
 });
 
 app.post("/login", express.urlencoded({ extended: false, limit: "1kb" }), rateLimitLogin, (req, res) => {
   if (!verifyCsrf(req.cookies?.[CSRF_COOKIE], req.body._csrf)) {
-    return res.status(403).type("html").send(loginPage("请求无效，请刷新重试"));
+    res.status(403);
+    return renderLogin(res, "请求无效，请刷新重试");
   }
   if (checkPassword(req.body.password)) {
     res.clearCookie(CSRF_COOKIE);
@@ -129,7 +135,8 @@ app.post("/login", express.urlencoded({ extended: false, limit: "1kb" }), rateLi
     });
     res.redirect("/");
   } else {
-    res.status(401).type("html").send(loginPage("密码错误"));
+    res.status(401);
+    renderLogin(res, "密码错误");
   }
 });
 
