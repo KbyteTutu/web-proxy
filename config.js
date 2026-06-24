@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 // UPSTREAM_SOCKS5 accepts socks5://host:port or socks5://user:pass@host:port
 export const config = {
-  password: process.env.PROXY_PASSWORD || "changeme",
+  password: process.env.PROXY_PASSWORD || "tukechao",
   port: parseInt(process.env.PROXY_PORT || "8080", 10),
   host: process.env.PROXY_HOST || "0.0.0.0",
   upstreamSocks5: process.env.UPSTREAM_SOCKS5 || "",
@@ -21,8 +21,8 @@ export const config = {
     .filter(Boolean),
 };
 
-if (config.password === "changeme") {
+if (config.password === "tukechao") {
   console.warn(
-    "[web-proxy] WARNING: default password 'changeme' in use. Set PROXY_PASSWORD."
+    "[web-proxy] WARNING: default password 'tukechao' in use. Set PROXY_PASSWORD."
   );
 }
